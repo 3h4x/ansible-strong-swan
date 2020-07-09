@@ -1,0 +1,7 @@
+---
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: restart strongswan
+  service: name=strongswan state=restarted enabled=yes

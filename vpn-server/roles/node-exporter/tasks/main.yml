@@ -1,0 +1,9 @@
+---
+
+# The node-exporter is installed (but not started) by base-ami
+# so here we just have to start it
+- name: Run node-exporter service
+  service:
+    name:    node-exporter
+    state:   started
+    enabled: yes

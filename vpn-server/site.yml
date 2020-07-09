@@ -1,0 +1,14 @@
+---
+
+- name: VPN Server
+  hosts: all
+  become: true
+  become_user: root
+  vars:
+    vpn_elastic_ip: "{{ ansible_env.VPN_ELASTIC_IP }}"
+  pre_tasks:
+    - name: Gather EC2 metadata facts
+      ec2_metadata_facts:
+  roles:
+    - strongswan
+    - nginx

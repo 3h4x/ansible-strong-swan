@@ -1,0 +1,18 @@
+---
+
+- name: Install packages
+  apt:
+    name: nginx
+
+
+- name: Add default
+  copy:
+    src:    default
+    dest:   /etc/nginx/sites-enabled/default
+    mode:   0444
+  notify: restart nginx
+
+- name: Ensure nginx is running
+  service:
+    name:    nginx
+    state:   started

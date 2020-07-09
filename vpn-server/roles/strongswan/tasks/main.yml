@@ -1,0 +1,62 @@
+---
+
+- name: Install packages
+  apt:
+    name: ['strongswan', 'strongswan-pki']
+
+- name: Generate certificate
+  shell: |
+    ipsec pki --gen --type rsa --size 4096 --outform pem > /etc/ipsec.d/private/ca-key.pem
+    ipsec pki --self --ca --lifetime 3650 --in /etc/ipsec.d/private/ca-key.pem --type rsa --dn "CN=VPN root CA" --outform pem > /etc/ipsec.d/cacerts/ca-cert.pem
+    ipsec pki --gen --type rsa --size 4096 --outform pem > /etc/ipsec.d/private/server-key.pem
+    ipsec pki --pub --in /etc/ipsec.d/private/server-key.pem --type rsa | ipsec pki --issue --lifetime 1825 \
+        --cacert /etc/ipsec.d/cacerts/ca-cert.pem \
+        --cakey /etc/ipsec.d/private/ca-key.pem \
+        --dn "CN=vpn.example.ch" --san "vpn.example.ch" \
+        --flag serverAuth --flag ikeIntermediate --outform pem \
+    >  /etc/ipsec.d/certs/server-cert.pem
+  args:
+    creates: /etc/ipsec.d/cacerts/ca-cert.pem
+#
+#- name: Configure masquerading
+#  iptables:
+#    table: nat
+#    chain: POSTROUTING
+#    source: 10.255.0.0/24
+#    out_interface: eth0
+#    jump: MASQUERADE
+#
+#- name: Configure forward chain
+#  iptables:
+#    chain: FORWARD
+#    policy: ACCEPT
+#
+#- name: Configure IP forward
+#  sysctl:
+#    name: net.ipv4.ip_forward
+#    value: 1
+#
+#- name: Configure IP forward
+#  sysctl:
+#    name: net.ipv4.ip_forward
+#    value: 1
+#
+
+- name: Add ipsec.conf
+  copy:
+    src:    ipsec.conf
+    dest:   /etc/ipsec.conf
+    mode:   0444
+  notify: restart strongswan
+
+- name: Add ipsec.secrets
+  copy:
+    src:    ipsec.secrets
+    dest:   /etc/ipsec.secrets
+    mode:   0444
+  notify: restart strongswan
+
+- name: Ensure strongswan is running
+  service:
+    name:    strongswan
+    state:   started

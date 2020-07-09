@@ -1,0 +1,30 @@
+# Proxy prometheus traffic via ipsec tunnel through dietpi
+server {
+	listen 9100 default_server;
+	listen [::]:9100 default_server;
+
+	server_name _;
+
+    location / {
+      access_log off;
+      proxy_pass http://192.168.88.250:9100;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+server {
+	listen 9436;
+	listen [::]:9436;
+
+	server_name _;
+
+    location / {
+      access_log off;
+      proxy_pass http://192.168.88.250:9436;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
